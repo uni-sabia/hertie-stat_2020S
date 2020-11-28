@@ -1,0 +1,160 @@
+---
+title: "Assignment 7 - Statistics II, Hertie School"
+output: html_document
+---
+
+
+```{r, include = FALSE}
+library(dplyr)
+library(tidyr) 
+library(ggplot2) 
+library(foreign)
+library(plm) 
+library(kableExtra) 
+library(stargazer)
+library(xtable)
+```
+
+<br>
+
+#### 1 - Traveling through time with Bert and Ernie [15 points in total]
+
+Recall the Sesame Street study from the Assignment 5 (dataset `sesame.dta` - variable descriptions here: http://www.stat.columbia.edu/~gelman/arm/examples/sesame/sesame.vars.doc). Since we have pre-test measures available for the study participants, we can use difference-in-differences as a strategy to get causal estimates of both the ITT effect and the effect of the treatment on the treated.
+
+<br> 
+
+(a) First, create a new variable representing the change in scores between the post-test (in letter recognition) and pre-test (in letter recognition) and call it `change_let`. Plot the distribution of this outcome variable separately for those who were encouraged (red color) vs. those who were not (blue color). [2 pts]
+
+```{r}
+a <- read.dta("sesame.dta")
+a$change_let <- a$postlet - a$prelet
+
+ggplot(a, aes(x=change_let,
+              color=factor(encour),
+              fill=factor(encour))) +
+  geom_density(alpha=0.2) + xlab("Change in Let") + 
+  ylab ("Frequency") + 
+  scale_color_manual(values=c("blue", "red")) +
+  scale_fill_manual(values=c("blue","red")) 
+
+```
+
+<br>
+
+(b) Let's ignore the experimental setup for now and just focus on the regular consumption of Sesame Street as explanatory variable (`regular`). Run the following two analyses: Regression of `postlet` on `regular` and regression of `change_let` on `regular`. For each, describe which estimand is targeted. Also, how do the coefficients compare? Does this make sense? [4 pts]
+<div align="center">
+```{r, results="asis"}
+
+lm1 <- lm(postlet~regular, data=a)
+lm2 <- lm(change_let~regular, data=a)
+stargazer(lm1, lm2, type="html", title="postlet vs. change", align=FALSE, out="postvschange.html")
+
+```
+</div>
+<div style="color:blue">
+When not considering the time dimension, watching sesame regularly is expected to increase the postlet by 12.689. If we considered the time dimension by regressing the change in letter recognition score, those who regularly watched sesame street scored on average 10.739 higher than those who did not watch it regularly. The coefficient of regular for the first model that does not take time component into consideration is 2 points higher than the second model that does take time component into consideration. It makes sense that there is a difference in the two models, since the first model may have a time-sensitive confounder that could be driving the increase in postlet - for example, children will naturally develop the ability to recognize letters with age.     
+</div>
+
+<br> 
+
+(c) What assumptions do we need to buy in order to trust causal interpretations of the estimates above (hint: assumptions will be slightly different for each)? How plausible are these assumptions? [4 pts]
+
+<div style="color:blue">
+In the first regression model, we are comparing postlet of the control and treatment groups after treatment. This model assumes that the mean ignorability of treatment assignment assumption is fulfilled. That is, 1) time is not a confounding factor, and 2) the control and treatment groups are randomly assigned, which makes the two groups similar and comparable. However, the first assumption is not likely to hold because children tend to read letters better as they get older. The second assumption is not plausible either, because it is likely that children self-selected themselves into control/treatment by choosing whether or not to respond to the encouragement (children who have higher letter recognition score may be the ones that comply to teachers' encouragement). Therefore, the ATE in this model is biased. 
+<br>
+<br>
+In the second regression model, we are comparing the change in postlet of the control and treatment groups after treatment. This model takes time dimension into consideration, assuming that there are parallel trends between the two groups. That is, the over-time difference in control group can be used as a counter-factual of what would have happened in the treatment group without treatment. This model takes the time-specific confounding factor into consideration and allows us to treat the control and treatment group as randomly assigned. The problem is that the parallel trend assumption might also be violated due to children's self-selection into treatment group, which was the same problem in the first regression model. 
+
+</div>
+
+<br>
+
+(d) Now run a model within the DD framework, making use of the encouragement variable `encour` instead of the `regular` variable, and provide a revised estimate. Note: You might have to make the data format "long", i.e. have two rows per observations. Check out how to achieve this here: http://www.cookbook-r.com/Manipulating_data/Converting_data_between_wide_and_long_format/ (We  recommend the `gather()` function.) [3 pts]
+
+<div align="center">
+```{r, results='asis'}
+
+b <- a %>% select(id, postlet, prelet, encour) %>% 
+  pivot_longer(cols=c(prelet, postlet), names_to="before_after", values_to="let_score") %>% 
+  mutate(after_sesame = if_else(before_after=="postlet", 1, 0))
+b
+
+diflm1 <- lm(let_score ~ encour + after_sesame + encour*after_sesame, data=b)
+stargazer(diflm1, type="html", title="Difference-in-Difference", align=FALSE, out="diffindiff.html")
+
+```
+</div>
+<div style="color:blue">
+The diff-in-diff estimand is 4.625. That is, those who were encouraged to watch Sesame Street regularly scored 4.625 points higher than those who was not encouraged. 
+</div>
+<br> 
+
+(e) Based on your results, provide a brief policy recommendation to the federal government regarding their funding of public television. (No more than 3 sentences). [2 pts]
+
+<div style="color:blue">
+Our observational data suggest that encouraging children to watch Sesame Street regularly increases children's performance on letter recognition by 4.625. Therefore, the federal government must provide public funding to producers of Sesame Street in public television. 
+</div>
+
+
+<br>
+
+#### 2 - Vehicle fatalities and drinking policies [10 points in total]
+
+We will use the dataset `fatality.dta` that contains data for the vehicle fatality rate in each of the 48 contiguous United States across 7 years as well as information on various policies in each state that are thought to be associated with drinking and driving and related demographic variables aggregated at the state level (fatality). (Variable description available here: http://fmwww.bc.edu/ec-p/data/stockwatson/fatality.des) For interpretation, assume the vehicle fatality rate is measured as deaths per 10,000 registered drivers and the beer tax is measured as dollars per case of beer.
+
+<br>
+
+(a) Run a regression of the vehicle fatality rate on the policy variable `beer tax` and potential confounding covariates per capita income, unemployment rate, the percentage of drivers between the ages of 15 and 24, and the average miles driven. Report the coefficient on beer tax and interpret without using a causal interpretation. [2 pts]
+
+<div align="center">
+```{r, results='asis'}
+c <- read.dta("fatality.dta")
+naive <- lm(mrall ~ beertax + perinc + unrate + yngdrv + vmiles, data=c)
+kable(xtable(naive))
+
+```
+</div>
+<div style="color:blue">
+The regression coefficient of beertax is 0.102. That is, every dollar of beertax per case of beer INCREASES fatality by 0.102 death per 10,000 registered driver. 
+</div>
+
+<br>
+
+(b) Run the same regression as in (a) but now using the unit fixed-effects estimator. How does the coefficient on beer tax change? What is your causal interpretation of it? What assumptions are necessary for the causal interpretation to be valid? [4 pts]
+<div align="center">
+```{r, results='asis'}
+unitfe <- plm(mrall ~ beertax, data=c, index=c("state"), model = "within")
+summary(unitfe)
+
+```
+</div>
+<div style="color:blue">
+Every dollar of tax imposed on a case of beer decreases the fatality rate by -6.559e-05 death per 10,000 registered drivers. The direction of the effect changed! By adding unit fixed effects to the model, we have accounted for unobserved variance among states. This model assumes that time-invariant traits of each state has an effect on the fatality rate. In other words, there is a correlation between the outcome and state characteristic, which is captured in the error term.
+
+</div>
+
+<br>
+
+(c) Run the same regression as in (b) but now adding year fixed effects as well. How does the effect of beer tax change? [2 pts]
+<div align="center">
+```{r, results='asis'}
+
+unittimefe <- plm(mrall ~ beertax, data=c, index = c("state", "year"),  model = "within", effect = "twoways")
+summary(unittimefe)
+
+```
+</div>
+<div style="color:blue">
+Every dollar of tax imposed on a case of beer decreases vehicle fatality by -6.400e-05 death per 10,000 registered driver. 
+</div>
+
+<br> 
+
+(d) Make a brief policy recommendation to the U.S. federal transportation department about whether or not they should adopt a federal beer tax as a means of reducing the vehicle fatality rate. (No more than 3 sentences). [2 pts]
+
+<div style="color:blue">
+U.S. federal transportation department should not adopt a federal beer tax to reduce the vehicle fatality rate. Our observational data showed that beer tax does not have a substantive effect on fatality: only -6.400e-05 per 10,000 registered drivers. They should look for other ways to reducing fatality, such as giving safety education to low-income communities. 
+</div>
+
+
+

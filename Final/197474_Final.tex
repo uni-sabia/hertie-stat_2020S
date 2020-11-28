@@ -1,0 +1,686 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdfauthor={Uni Lee},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+
+\title{Replication Paper for\\
+Statistics II: Statistical Modeling \& Causal Inference}
+\author{Uni Lee}
+\date{4/12/2020}
+
+\begin{document}
+\maketitle
+
+{
+\setcounter{tocdepth}{2}
+\tableofcontents
+}
+Cortina and Rottinghaus(2019). Vote centers and turnout by election type
+in Texas.
+
+\hypertarget{summary}{%
+\section{1. Summary}\label{summary}}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  Research question: does geographic access to voting (by introducing
+  voting centers, where peole can vote regardless of their address)
+  affect turnout?
+\item
+  Results: decentralizing vote centers have a small positive effect over
+  time in low-turnout elections, but not much effect on high-turnout
+  elections. Overall, the results suggest that voter centers' impact on
+  turnout is marginal and not statistically significant. For
+  presidential elections the impact of vote centers on turnout is
+  basically zero, the opposite of what was expected.
+\item
+  Modeling strategy: difference-in-differences fixed effect and Matching
+\end{enumerate}
+
+\begin{itemize}
+\tightlist
+\item
+  Difference-in-differences: The DD estimator allows us to compare
+  counties before and after the implementation of vote centers by
+  estimating the difference between the observed mean turnout for
+  counties with vote centers and counties with no vote centers before
+  and after a particular implementation year.
+\item
+  Matching: using propensity scores of vote centers given a vector of
+  covariates, we subset data to get more accurate results. To do so, we
+  need to assume \emph{1) turnout depends only on whether a county has
+  or does not have vote centers, and is not affected by other counties'
+  treatment (SUTVA)} and \emph{2) each treatment condition is
+  independent of the potential outcomes after conditioning on covariates
+  (ignorability assumption)}
+\end{itemize}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{3}
+\item
+  Subject of analysis: panel data from Texas. Why? Texas' vote turnout
+  is one of the lowest in the United States. Texas has three fixed and
+  perma- nent election cycles: constitutional, midterm and gubernatorial
+  and presidential. The impact of vote centers will be assessed by
+  comparing the difference-in-difference in vote turnout after
+  introducing vote centers in some counties.
+\item
+  Hypothesis: H1: Voter turnout will increase in counties that switch to
+  a vote center method in midterm/gubernatorial and presidential
+  elections, compared with constitutional elections.
+\item
+  Data: Panel data from 2009-2018 on 254 counties in Texas
+\end{enumerate}
+
+\begin{itemize}
+\tightlist
+\item
+  Provider: Texas Legislative Council, the Texas Secretary of State, the
+  Texas State Demographer
+\end{itemize}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{6}
+\tightlist
+\item
+  DD estimator: an interaction term between year and counties with or
+  without a vote center.
+\end{enumerate}
+
+\hypertarget{exploring-the-dataset}{%
+\section{2. Exploring the Dataset}\label{exploring-the-dataset}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{42}\NormalTok{) }\CommentTok{#for consistent results}
+
+\CommentTok{# load libraries}
+\KeywordTok{library}\NormalTok{(tidyverse)}
+\KeywordTok{library}\NormalTok{(haven) }
+\KeywordTok{library}\NormalTok{(knitr)}
+\KeywordTok{library}\NormalTok{(dplyr)}
+\KeywordTok{library}\NormalTok{(tidyr) }
+\KeywordTok{library}\NormalTok{(ggplot2) }
+\KeywordTok{library}\NormalTok{(sjPlot)}
+\KeywordTok{library}\NormalTok{(sjmisc)}
+\KeywordTok{library}\NormalTok{(sjlabelled)}
+\KeywordTok{library}\NormalTok{(modelsummary)}
+\KeywordTok{library}\NormalTok{(lmtest)}
+\KeywordTok{library}\NormalTok{(plm)}
+\KeywordTok{library}\NormalTok{(stargazer)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 254
+\end{verbatim}
+
+\begin{verbatim}
+## # A tibble: 6 x 8
+##   county election  year votecenter turnout medianinc_rec totalpop_rec
+##   <chr>  <chr>    <dbl>      <dbl>   <dbl>         <dbl>        <dbl>
+## 1 Ander~ Constit~  2015          0  0.115           4.13       0.0589
+## 2 Ander~ Constit~  2011          0  0.0660          4.06       0.0587
+## 3 Ander~ Constit~  2017          0  0.0389          4.69       0.0577
+## 4 Ander~ Constit~  2013          0  0.0760          4.07       0.0590
+## 5 Ander~ Constit~  2009          0  0.101           3.94       0.0584
+## 6 Ander~ Midterm~  2014          0  0.379           4.25       0.0585
+## # ... with 1 more variable: bachelor_higher <dbl>
+\end{verbatim}
+
+The dataset shows vote turnout rates in 254 counties in Texas for 3
+different types of elections before and after vote centers were
+introduced. Variables of our interest in the dataset are:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{turnout}: the percentage of voters out of the total number of
+  eligible registered voters in a given county (outcome variable)
+\item
+  \texttt{votecenter} : presence of vote center(binary, treatment
+  variable)
+\item
+  \texttt{year}: year of election
+\item
+  \texttt{county}: county name(Character)
+\item
+  \texttt{election}: Type of election(Character)
+\item
+  \texttt{totalpop\_rec}: county population
+\item
+  \texttt{medianinc\_rec}: median income
+\item
+  \texttt{bachelor\_higher}: share of people who have received higher
+  education
+\end{itemize}
+
+\hypertarget{replicate-table-1}{%
+\section{3. Replicate Table 1}\label{replicate-table-1}}
+
+\hypertarget{prepping-the-data-for-regression}{%
+\subsection{3.1 Prepping the data for
+regression}\label{prepping-the-data-for-regression}}
+
+The author coded the variable \texttt{year} into a dummy variable
+\texttt{Time\_P}, \texttt{Time\_M},\texttt{Time\_C} that gives value 0
+to time before introducing vote centers, and 1 to after they were
+introduced for each election type. The author also stratified the
+results into election types to account for unit fixed effects.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Create 3 new variables that indicate time.}
+\NormalTok{a <-}\StringTok{ }\NormalTok{a }\OperatorTok{%>%}\StringTok{ }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{time_p =} 
+               \KeywordTok{case_when}\NormalTok{(}
+\NormalTok{                 year }\OperatorTok{==}\StringTok{ }\DecValTok{2016} \OperatorTok{~}\StringTok{ "1"}\NormalTok{,}
+\NormalTok{                 year }\OperatorTok{==}\StringTok{ }\DecValTok{2012} \OperatorTok{~}\StringTok{ "0"}\NormalTok{),}
+             \DataTypeTok{time_m =} 
+               \KeywordTok{case_when}\NormalTok{(}
+\NormalTok{                 year }\OperatorTok{==}\StringTok{ }\DecValTok{2018} \OperatorTok{~}\StringTok{ "1"}\NormalTok{,}
+\NormalTok{                 year }\OperatorTok{==}\StringTok{ }\DecValTok{2010} \OperatorTok{~}\StringTok{ "0"}\NormalTok{),}
+             \DataTypeTok{time_c =}
+               \KeywordTok{case_when}\NormalTok{(}
+\NormalTok{                 year }\OperatorTok{==}\StringTok{ }\DecValTok{2017} \OperatorTok{~}\StringTok{ "1"}\NormalTok{,}
+\NormalTok{                 year }\OperatorTok{==}\StringTok{ }\DecValTok{2009} \OperatorTok{~}\StringTok{ "0"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{difference-in-difference-and-fixed-effects-regression-model}{%
+\subsection{3.2 Difference-in-difference and Fixed Effects Regression
+Model}\label{difference-in-difference-and-fixed-effects-regression-model}}
+
+\[Y_{it} = β0 + β1*[Year] + β2*[Vote Center] + β3*[Year*Vote Center] + β4*[Median Income] + β5*[Potal Population] + β6*[Bachelor Degree] + q_{it}\]
+\emph{where} + i = county + t = year (1 after implementation, 0 before
+implementation)
+
+\hypertarget{regression-results}{%
+\subsection{2.3 Regression Results}\label{regression-results}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Presidential}
+\NormalTok{tb1_p <-}\StringTok{ }\KeywordTok{plm}\NormalTok{(turnout }\OperatorTok{~}\StringTok{ }\NormalTok{votecenter}\OperatorTok{*}\NormalTok{time_p }\OperatorTok{+}\StringTok{ }\NormalTok{medianinc_rec }\OperatorTok{+}\StringTok{ }\NormalTok{totalpop_rec }\OperatorTok{+}\StringTok{ }\NormalTok{bachelor_higher, }\DataTypeTok{data=}\NormalTok{a, }\DataTypeTok{index=}\KeywordTok{c}\NormalTok{(}\StringTok{"county"}\NormalTok{), }\DataTypeTok{model=}\StringTok{"within"}\NormalTok{)}
+
+\CommentTok{# Midterm}
+\NormalTok{tb1_m <-}\StringTok{ }\KeywordTok{plm}\NormalTok{(turnout }\OperatorTok{~}\StringTok{ }\NormalTok{votecenter}\OperatorTok{*}\NormalTok{time_m }\OperatorTok{+}\StringTok{ }\NormalTok{medianinc_rec }\OperatorTok{+}\StringTok{ }\NormalTok{totalpop_rec }\OperatorTok{+}\StringTok{ }\NormalTok{bachelor_higher, }\DataTypeTok{data=}\NormalTok{a, }\DataTypeTok{index=}\KeywordTok{c}\NormalTok{(}\StringTok{"county"}\NormalTok{), }\DataTypeTok{model=}\StringTok{"within"}\NormalTok{) }
+
+\CommentTok{# Constitutional}
+\NormalTok{tb1_c <-}\StringTok{ }\KeywordTok{plm}\NormalTok{(turnout }\OperatorTok{~}\StringTok{ }\NormalTok{votecenter}\OperatorTok{*}\NormalTok{time_c }\OperatorTok{+}\StringTok{ }\NormalTok{medianinc_rec }\OperatorTok{+}\StringTok{ }\NormalTok{totalpop_rec }\OperatorTok{+}\StringTok{ }\NormalTok{bachelor_higher, }\DataTypeTok{data=}\NormalTok{a, }\DataTypeTok{index=}\KeywordTok{c}\NormalTok{(}\StringTok{"county"}\NormalTok{), }\DataTypeTok{model=}\StringTok{"within"}\NormalTok{) }
+
+\KeywordTok{tab_model}\NormalTok{(tb1_p, tb1_m, tb1_c, }
+          \DataTypeTok{show.ci=}\OtherTok{FALSE}\NormalTok{, }\DataTypeTok{collapse.se=}\OtherTok{TRUE}\NormalTok{, }\DataTypeTok{p.style=}\StringTok{"asterisk"}\NormalTok{, }\DataTypeTok{show.intercept=}\OtherTok{TRUE}\NormalTok{,}
+          \DataTypeTok{title=}\StringTok{"Replicated Table 1"}\NormalTok{,}
+          \DataTypeTok{robust=}\OtherTok{TRUE}\NormalTok{,}
+          \DataTypeTok{dv.labels =} \KeywordTok{c}\NormalTok{(}\StringTok{"Presidential"}\NormalTok{, }\StringTok{"Midterm"}\NormalTok{, }\StringTok{"Constitutional"}\NormalTok{),}
+          \DataTypeTok{pred.labels=}\KeywordTok{c}\NormalTok{(}\StringTok{"Vote center (1=yes/0=no)"}\NormalTok{, }\StringTok{"Time_P (1=2016/0=2012)"}\NormalTok{, }\StringTok{"Median income"}\NormalTok{, }\StringTok{"Total population"}\NormalTok{, }\StringTok{"Bachelor's degree or higher"}\NormalTok{, }\StringTok{"Time_P*Vote center"}\NormalTok{, }\StringTok{"Time_M (1=2018/0=2010)"}\NormalTok{, }\StringTok{"Time_M*Vote center"}\NormalTok{, }\StringTok{"Time_C (1=2017/0=2019)"}\NormalTok{, }\StringTok{"Time_C*Vote center"}\NormalTok{),}
+          \DataTypeTok{string.pred=}\StringTok{"Variables"}\NormalTok{,}
+          \DataTypeTok{order.terms =} \KeywordTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{, }\DecValTok{6}\NormalTok{, }\DecValTok{7}\NormalTok{, }\DecValTok{8}\NormalTok{, }\DecValTok{9}\NormalTok{, }\DecValTok{10}\NormalTok{, }\DecValTok{3}\NormalTok{, }\DecValTok{5}\NormalTok{, }\DecValTok{4}\NormalTok{), }
+          \DataTypeTok{digits=}\DecValTok{3}
+          
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Replicated Table 1
+
+~
+
+Presidential
+
+Midterm
+
+Constitutional
+
+Variables
+
+Estimates
+
+Estimates
+
+Estimates
+
+Vote center (1=yes/0=no)
+
+0.005 (0.007)
+
+0.000 (0.031)
+
+-0.028 (0.059)
+
+Time\_P (1=2016/0=2012)
+
+-0.004 (0.003)
+
+Time\_P*Vote center
+
+-0.001 (0.006)
+
+Time\_M (1=2018/0=2010)
+
+0.104 ***(0.005)
+
+Time\_M*Vote center
+
+0.015 (0.031)
+
+Time\_C (1=2017/0=2019)
+
+-0.054 ***(0.007)
+
+Time\_C*Vote center
+
+0.054 (0.059)
+
+Median income
+
+0.000 (0.006)
+
+-0.004 (0.006)
+
+0.009 (0.006)
+
+Bachelor's degree or higher
+
+-0.012 (0.116)
+
+0.228 (0.146)
+
+-0.134 (0.095)
+
+Total population
+
+-0.121 **(0.042)
+
+0.250 (0.136)
+
+0.055 (0.064)
+
+Observations
+
+508
+
+508
+
+508
+
+R2 / R2 adjusted
+
+0.026 / -0.991
+
+0.820 / 0.631
+
+0.407 / -0.212
+
+\begin{itemize}
+\tightlist
+\item
+  p\textless0.05~~~** p\textless0.01~~~*** p\textless0.001
+\end{itemize}
+
+\hypertarget{clustered-standard-errors}{%
+\subsection{3.4 Clustered standard
+errors}\label{clustered-standard-errors}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Presidential }
+\KeywordTok{coeftest}\NormalTok{(tb1_p, }\DataTypeTok{vcov=}\KeywordTok{vcovHC}\NormalTok{(tb1_p, }\DataTypeTok{cluster=}\StringTok{"group"}\NormalTok{)) }
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## t test of coefficients:
+## 
+##                       Estimate  Std. Error t value Pr(>|t|)   
+## votecenter          0.00501364  0.00635632  0.7888 0.431003   
+## time_p1            -0.00376307  0.00340057 -1.1066 0.269539   
+## medianinc_rec       0.00033554  0.00610514  0.0550 0.956214   
+## totalpop_rec       -0.12063831  0.03751936 -3.2154 0.001476 **
+## bachelor_higher    -0.01169545  0.11270721 -0.1038 0.917437   
+## votecenter:time_p1 -0.00064569  0.00605000 -0.1067 0.915093   
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Midterm}
+\KeywordTok{coeftest}\NormalTok{(tb1_m, }\DataTypeTok{vcov=}\KeywordTok{vcovHC}\NormalTok{(tb1_p, }\DataTypeTok{cluster=}\StringTok{"group"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## t test of coefficients:
+## 
+##                    Estimate  Std. Error t value  Pr(>|t|)    
+## votecenter       4.8664e-05  6.3563e-03  0.0077   0.99390    
+## medianinc_rec   -4.2610e-03  6.1051e-03 -0.6979   0.48587    
+## totalpop_rec     2.4976e-01  3.7519e-02  6.6568 1.785e-10 ***
+## bachelor_higher  2.2832e-01  1.1271e-01  2.0258   0.04386 *  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Constitutional}
+\KeywordTok{coeftest}\NormalTok{(tb1_c, }\DataTypeTok{vcov=}\KeywordTok{vcovHC}\NormalTok{(tb1_p, }\DataTypeTok{cluster=}\StringTok{"group"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## t test of coefficients:
+## 
+##                   Estimate Std. Error t value  Pr(>|t|)    
+## votecenter      -0.0284803  0.0063563 -4.4806 1.137e-05 ***
+## medianinc_rec    0.0086165  0.0061051  1.4114    0.1594    
+## totalpop_rec     0.0554176  0.0375194  1.4770    0.1409    
+## bachelor_higher -0.1341180  0.1127072 -1.1900    0.2352    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+\hypertarget{replicate-table-2}{%
+\section{4. Replicate Table 2}\label{replicate-table-2}}
+
+``To test the impact of the vote centers on turnout during time periods
+we fit a similar DD, fixed effect model with county-clustered standard
+errors to various time windows of constitutional elections since these
+are the most abundant in the data.''
+
+\hypertarget{prepping-data}{%
+\subsection{4.1 Prepping Data}\label{prepping-data}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Subset Constitutional election data}
+\NormalTok{b <-}\StringTok{ }\NormalTok{a }\OperatorTok{%>%}\StringTok{ }\KeywordTok{filter}\NormalTok{(election}\OperatorTok{==}\StringTok{"Constitutional"}\NormalTok{)}
+
+\CommentTok{# Create dummy time variables }
+\NormalTok{b <-}\StringTok{ }\NormalTok{b }\OperatorTok{%>%}\StringTok{ }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{time_c1 =} 
+               \KeywordTok{case_when}\NormalTok{(}
+\NormalTok{                 year }\OperatorTok{==}\StringTok{ }\DecValTok{2011} \OperatorTok{~}\StringTok{ "1"}\NormalTok{,}
+\NormalTok{                 year }\OperatorTok{==}\StringTok{ }\DecValTok{2009} \OperatorTok{~}\StringTok{ "0"}\NormalTok{),}
+             \DataTypeTok{time_c2 =} 
+               \KeywordTok{case_when}\NormalTok{(}
+\NormalTok{                 year }\OperatorTok{==}\StringTok{ }\DecValTok{2017} \OperatorTok{~}\StringTok{ "1"}\NormalTok{,}
+\NormalTok{                 year }\OperatorTok{==}\StringTok{ }\DecValTok{2015} \OperatorTok{~}\StringTok{ "0"}\NormalTok{),}
+             \DataTypeTok{time_c3 =}
+               \KeywordTok{case_when}\NormalTok{(}
+\NormalTok{                 year }\OperatorTok{==}\StringTok{ }\DecValTok{2017} \OperatorTok{~}\StringTok{ "1"}\NormalTok{,}
+\NormalTok{                 year }\OperatorTok{==}\StringTok{ }\DecValTok{2015} \OperatorTok{~}\StringTok{ "0"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{regression-models-and-results}{%
+\subsection{4.2 Regression Models and
+Results}\label{regression-models-and-results}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{tb2_c1 <-}\StringTok{ }\KeywordTok{plm}\NormalTok{(turnout }\OperatorTok{~}\StringTok{ }\NormalTok{votecenter}\OperatorTok{*}\NormalTok{time_c1 }\OperatorTok{+}\StringTok{ }\NormalTok{medianinc_rec }\OperatorTok{+}\StringTok{ }\NormalTok{totalpop_rec }\OperatorTok{+}\StringTok{ }\NormalTok{bachelor_higher, }\DataTypeTok{data=}\NormalTok{b, }\DataTypeTok{index=}\KeywordTok{c}\NormalTok{(}\StringTok{"county"}\NormalTok{), }\DataTypeTok{model=}\StringTok{"within"}\NormalTok{)}
+
+\NormalTok{tb2_c2 <-}\StringTok{ }\KeywordTok{plm}\NormalTok{(turnout }\OperatorTok{~}\StringTok{ }\NormalTok{votecenter}\OperatorTok{*}\NormalTok{time_c2 }\OperatorTok{+}\StringTok{ }\NormalTok{medianinc_rec }\OperatorTok{+}\StringTok{ }\NormalTok{totalpop_rec }\OperatorTok{+}\StringTok{ }\NormalTok{bachelor_higher, }\DataTypeTok{data=}\NormalTok{b, }\DataTypeTok{index=}\KeywordTok{c}\NormalTok{(}\StringTok{"county"}\NormalTok{), }\DataTypeTok{model=}\StringTok{"within"}\NormalTok{) }
+
+\NormalTok{tb2_c3 <-}\StringTok{ }\KeywordTok{plm}\NormalTok{(turnout }\OperatorTok{~}\StringTok{ }\NormalTok{votecenter}\OperatorTok{*}\NormalTok{time_c3 }\OperatorTok{+}\StringTok{ }\NormalTok{medianinc_rec }\OperatorTok{+}\StringTok{ }\NormalTok{totalpop_rec }\OperatorTok{+}\StringTok{ }\NormalTok{bachelor_higher, }\DataTypeTok{data=}\NormalTok{b, }\DataTypeTok{index=}\KeywordTok{c}\NormalTok{(}\StringTok{"county"}\NormalTok{), }\DataTypeTok{model=}\StringTok{"within"}\NormalTok{) }
+
+\KeywordTok{stargazer}\NormalTok{(tb2_c1, tb2_c2, tb2_c3, }
+          \DataTypeTok{title=}\StringTok{"Replicated Table 2"}\NormalTok{,}
+          \DataTypeTok{align=}\OtherTok{TRUE}\NormalTok{,}
+          \DataTypeTok{column.labels =} \KeywordTok{c}\NormalTok{(}\StringTok{"Constitutional 2009-2011"}\NormalTok{, }\StringTok{"Constitutional 2011-2017"}\NormalTok{, }\StringTok{"Constitutional 2015-2017"}\NormalTok{),}
+          \CommentTok{# covariate.labels = c("Vote Center", "Time_c1 (1=2011/0=2009)", "Time_c2(1=2017/0=2011", "Time_c3(1=2017/0=2015", "Median income", "Total population", "Bachelor's degree or higher", "Vote Center*Time_c1", "Vote Center*Time_c2", "Vote Center*Time_c3"),}
+          \DataTypeTok{order=}\KeywordTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{, }\DecValTok{8}\NormalTok{, }\DecValTok{3}\NormalTok{, }\DecValTok{9}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{10}\NormalTok{, }\DecValTok{5}\NormalTok{, }\DecValTok{7}\NormalTok{, }\DecValTok{6}\NormalTok{),}
+          \DataTypeTok{type=}\StringTok{"html"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Replicated Table 2
+
+Dependent variable:
+
+turnout
+
+Constitutional 2009-2011
+
+Constitutional 2011-2017
+
+Constitutional 2015-2017
+
+(1)
+
+(2)
+
+(3)
+
+votecenter
+
+0.025
+
+0.011
+
+0.011
+
+(0.029)
+
+(0.017)
+
+(0.017)
+
+time\_c11
+
+-0.036***
+
+(0.003)
+
+votecenter:time\_c11
+
+-0.009
+
+(0.020)
+
+time\_c21
+
+-0.056***
+
+(0.005)
+
+votecenter:time\_c21
+
+0.010
+
+(0.010)
+
+time\_c31
+
+-0.056***
+
+(0.005)
+
+votecenter:time\_c31
+
+0.010
+
+(0.010)
+
+medianinc\_rec
+
+-0.007
+
+0.001
+
+0.001
+
+(0.008)
+
+(0.007)
+
+(0.007)
+
+bachelor\_higher
+
+-0.103
+
+0.044
+
+0.044
+
+(0.094)
+
+(0.203)
+
+(0.203)
+
+totalpop\_rec
+
+0.127
+
+-0.242
+
+-0.242
+
+(0.156)
+
+(0.311)
+
+(0.311)
+
+Observations
+
+508
+
+508
+
+508
+
+R2
+
+0.475
+
+0.478
+
+0.478
+
+Adjusted R2
+
+-0.074
+
+-0.066
+
+-0.066
+
+F Statistic (df = 6; 248)
+
+37.340***
+
+37.903***
+
+37.903***
+
+Note:
+
+\emph{p\textless0.1; \textbf{p\textless0.05; }}p\textless0.01
+
+\end{document}

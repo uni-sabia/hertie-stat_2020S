@@ -1,0 +1,339 @@
+---
+title: |
+  | Replication Paper for
+  | Statistics II: Statistical Modeling & Causal Inference
+author: "Uni Lee"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: journal
+    toc: yes
+    toc_float:
+      collapsed: no
+  pdf_document:
+    toc: yes
+---
+<br>
+
+Cortina and Rottinghaus(2019). Vote centers and turnout by election type in Texas.
+<r>
+
+# 1. Summary
+<br>
+
+Cortina and Rottinghaus test the effectiveness of voting centers on increasing vote participation (turnout). In theory, installing a series of centeralized voting centers decreases the cost of voting. People who are interested in voting are more likely to utilize them. Hence, the hypothesis is that presence of voting centers should have a more positive effect on turnout rate for Presidential and Midterm elections whose turnout rates are traditionally higher. Voting centers will have less effect on turnout rate for Constitutional elections. 
+
+The researchers could not reject the null hypothesis. The difference-in-difference fixed effects estimand of vote centers on turnout in Presidential and Mid-term elections were -0.001 and 0.015 respectively, and were not statistically significant. In Constitutional elections, the difference-in-difference fixed effects estimand of vote centers was 0.0536. Over time, the effect of vote centers has only a small effect on turnout. 
+
+As implied above, the statistical model used in this study is difference-in-difference fixed effects with county-clustered standard errors. The estimand given by this model is the difference between the average turnout for counties with vote centers and counties with no vote centers before and after implementing them. There are two assumptios about the data: _1) vote center is the only factor that affects turnout, and a county's turnout is not affected by the presence of vote centers in other counties (SUTVA);_ and _2) after conditioning on confounders, treatment condition is independent of the potential outcomes (ignorability assumption)_.
+ 
+The researchers chose the panel data from 2009 to 2010 on 3 different elections in 254 counties in Texas. The datasets are provided by Texas Legislative Council, the Texas Secretary of State and the Texas State Demographer.
+
+<br>
+
+# 2. Exploring the Dataset
+<br>
+
+```{r, warning=FALSE, message=FALSE}
+set.seed(42) #for consistent results
+
+# load libraries
+library(tidyverse)
+library(haven) 
+library(dplyr)
+library(tidyr) 
+library(ggplot2) 
+library(sjPlot)
+library(sjmisc)
+library(sjlabelled)
+library(lmtest)
+library(plm)
+library(stargazer)
+library(MatchIt)
+library(lubridate)
+```
+
+```{r, echo=FALSE}
+# load data and change the class of "year" and "votecenter" to "date" and "factor". 
+raw <- read_dta("Rottinghaus_Cortina_Vote Centers and Turnout by Election Type in Texas_Data.dta") %>% 
+  mutate(votecenter=factor(votecenter),
+         year=year(as.Date(as.character(year), format="%Y")))
+
+# take variables of our interest 
+a <- raw %>% 
+  select(county, election, year, votecenter, turnout, medianinc_rec, totalpop_rec, bachelor_higher) %>% arrange(county, election) 
+
+# check the number of counties
+length(unique(a$county)) 
+
+# there is no NA in our dataset
+sum(is.na(a))
+
+```
+
+The dataset shows vote turnout rates in 254 counties in Texas for 3 different types of elections before and after vote centers were introduced. Variables of our interest in the dataset are: 
+
++ `turnout`: the percentage of voters out of the total number of eligible registered voters in a given county (outcome variable)
++ `votecenter` : presence of vote center (binary, treatment variable)
++ `year`: year of election
++ `county`: county name
++ `election`: Type of election
++ `totalpop_rec`: county population 
++ `medianinc_rec`: median income
++ `bachelor_higher`: share of people who have received higher education
+
+# 3. Difference-in-difference and Fixed Effects Regression Model
+$$Y_{it} = β0 + β1*[Time] + β2*[Vote Center] + β3*[Time*Vote Center] + β4*[Median Income] + β5*[Potal Population] + β6*[Bachelor Degree] + q_{it}$$
+_where i = county, t = year (1 after implementation, 0 before implementation)_
+and
+_Diff-in-Diff with Fixed Effects Estimator is β3_
+
+<br>
+
+# 4. Replicate Table 1 
+<br>
+
+## 4.1 Prepping data
+The author coded the variable `year` into a dummy variable `Time_P`, `Time_M`,`Time_C` that gives value 0 to time before introducing vote centers, and 1 to after they were introduced for each election type. The author also stratified the results into election types to account for unit fixed effects.
+
+```{r}
+# Create 3 new variables that indicate time.
+at <- a %>% mutate(time_p = 
+               case_when(
+                 year == 2016 ~ "1",
+                 year == 2012 ~ "0"),
+             time_m = 
+               case_when(
+                 year == 2018 ~ "1",
+                 year == 2010 ~ "0"),
+             time_c =
+               case_when(
+                 year == 2017 ~ "1",
+                 year == 2009 ~ "0"))
+
+```
+
+## 4.2 Regression Results
+
+```{r, results="asis"}
+# Presidential
+tb1_p <- plm(turnout ~ votecenter*time_p + medianinc_rec + totalpop_rec + bachelor_higher, data=at, index=c("county"), model="within")
+
+# Midterm
+tb1_m <- plm(turnout ~ votecenter*time_m + medianinc_rec + totalpop_rec + bachelor_higher, data=at, index=c("county"), model="within") 
+
+# Constitutional
+tb1_c <- plm(turnout ~ votecenter*time_c + medianinc_rec + totalpop_rec + bachelor_higher, data=at, index=c("county"), model="within") 
+
+tab_model(tb1_p, tb1_m, tb1_c, 
+          show.ci=FALSE, collapse.se=TRUE, p.style="asterisk", show.intercept=TRUE,
+          title="Replicated Table 1",
+          robust=TRUE,
+          dv.labels = c("Presidential", "Midterm", "Constitutional"),
+          pred.labels=c("Vote center (1=yes/0=no)", "Time_P (1=2016/0=2012)", "Median income", "Total population", "Bachelor's degree or higher", "Time_P*Vote center", "Time_M (1=2018/0=2010)", "Time_M*Vote center", "Time_C (1=2017/0=2019)", "Time_C*Vote center"),
+          string.pred="Variables",
+          order.terms = c(1, 2, 6, 7, 8, 9, 10, 3, 5, 4), 
+          digits=3
+          
+)
+          
+```
+
+## 4.3 Clustered standard errors
+
+```{r}
+# Presidential 
+coeftest(tb1_p, vcov=vcovHC(tb1_p, cluster="group")) 
+# Midterm
+coeftest(tb1_m, vcov=vcovHC(tb1_p, cluster="group"))
+# Constitutional
+coeftest(tb1_c, vcov=vcovHC(tb1_p, cluster="group"))
+
+```
+
+# 5. Replicate Table 2
+
+## 5.1 Prepping Data
+
+```{r}
+# Subset Constitutional election data
+b <- a %>% filter(election=="Constitutional") %>% 
+# Create dummy variables
+  mutate(time_c1 = case_when(
+                 year == 2011 ~ "1",
+                 year == 2009 ~ "0"),
+         time_c2 = case_when(
+                 year == 2017 ~ "1",
+                 year == 2011 ~ "0"),
+         time_c3 = case_when(
+                 year == 2017 ~ "1",
+                 year == 2015 ~ "0"))
+
+```
+
+## 5.2 Regression models and results
+```{r, results="asis"}
+
+tb2_c1 <- plm(turnout ~ votecenter*time_c1 + medianinc_rec + totalpop_rec + bachelor_higher, data=b, index=c("county"), model="within")
+
+tb2_c2 <- plm(turnout ~ votecenter*time_c2 + medianinc_rec + totalpop_rec + bachelor_higher, data=b, index=c("county"), model="within") 
+
+tb2_c3 <- plm(turnout ~ votecenter*time_c3 + medianinc_rec + totalpop_rec + bachelor_higher, data=b, index=c("county"), model="within") 
+
+stargazer(tb2_c1, tb2_c2, tb2_c3, 
+          title="Replicated Table 2: Constitutional",
+          align=TRUE,
+          column.labels = c("2009-2011", "2011-2017", "2015-2017"),
+          order=c(1, 2, 8, 3, 9, 4, 10, 5, 7, 6),
+          digits=5,
+          type="html")
+
+```
+## 5.3 Clustered standard errors
+
+```{r}
+# Constitutional 1
+coeftest(tb1_p, vcov=vcovHC(tb2_c1, cluster="group")) 
+# Constitutional 2
+coeftest(tb1_m, vcov=vcovHC(tb2_c2, cluster="group"))
+# Constitutional 3
+coeftest(tb1_c, vcov=vcovHC(tb2_c3, cluster="group"))
+
+```
+
+# 6. Replicate Table 3 
+
+## 6.1 Prepping Data
+
+```{r}
+
+# Presidential
+p <- a %>% filter(election=="Presidential") %>% 
+  mutate(time_p=(ifelse(year==2016, 0, 1)))
+
+# Mid-term/gubernatorial
+m <- a %>% filter(election=="Midterm/Gubernatorial" & year==2010 | year==2018) %>%
+  mutate(time_m=(ifelse(year==2018, 1, 0)))
+
+# Constitutional
+c <- a %>% filter(election=="Constitutional" & year==2017 | year==2009) %>% 
+  mutate(time_c=(ifelse(year==2017, 1, 0)))
+
+```
+
+## 6.2 Matching
+
+```{r}
+# matching on 3 covariates
+p_match <- matchit(votecenter ~ medianinc_rec + totalpop_rec + bachelor_higher, 
+                   method = "nearest",
+                   ratio = 1,
+                   replace = TRUE, 
+                   data = p)
+
+m_match <- matchit(votecenter ~ medianinc_rec + totalpop_rec + bachelor_higher, 
+                   method = "nearest",
+                   ratio = 1,
+                   replace = TRUE,
+                   data = m)
+
+c_match <- matchit(votecenter ~ medianinc_rec + totalpop_rec + bachelor_higher, 
+                   method = "nearest",
+                   ratio = 1,
+                   replace = TRUE,
+                   data = c)
+
+# Grab data
+p_match_data <- match.data(p_match)
+m_match_data <- match.data(m_match)
+c_match_data <- match.data(c_match)
+
+```
+## 6.3 Regression Results
+
+```{r, results="asis"}
+
+# linear regression using matched data
+tb3_p <- lm(turnout ~ votecenter*time_p + medianinc_rec + totalpop_rec + bachelor_higher, data=p_match_data)
+tb3_m <- lm(turnout ~ votecenter*time_m + medianinc_rec + totalpop_rec + bachelor_higher, data=m_match_data)
+tb3_c <- lm(turnout ~ votecenter*time_c + medianinc_rec + totalpop_rec + bachelor_higher, data=c_match_data)
+
+tab_model(tb3_p, tb3_m, tb3_c, 
+          show.ci=FALSE, collapse.se=TRUE, p.style="asterisk", show.intercept=TRUE,
+          title="Replicated Table 3",
+          robust=TRUE,
+          dv.labels = c("Presidential", "Midterm", "Constitutional"),
+          pred.labels=c("Constant", "Vote center (1=yes/0=no)", "Time_P (1=2016/0=2012)", "Median income", "Total population", "Bachelor's degree or higher", "Time_P*Vote center", "Time_M (1=2018/0=2010)", "Time_M*Vote center", "Time_C (1=2017/0=2019)", "Time_C*Vote center"),
+          string.pred="Variables",
+          order.terms = c(2, 3, 7, 8, 9, 10, 11, 4, 6, 5, 1), 
+          digits=5)
+
+```
+
+# 7. Parallel Trend Assumption 
+
+In order to hold the parallel trend assumption, the difference between the the counties that have introduced vote centers(treatment group) and those that did not(control group) should be constant without treatment.
+
+```{r, warning=FALSE}
+parallel_data <- raw %>% group_by(year, votecenter, election) %>% 
+  summarise(turnout = mean(turnout))
+
+ggplot(data=parallel_data, aes(x=year, y=turnout, color=votecenter)) +
+  geom_line() + facet_grid(~election) 
+
+```
+
+# 8. Robustness Test
+
+## 8.1 SUTVA: No interference
+
+For the result to be robust, another assumption must hold: SUTVA (Stable Unit Treatment Value Assumption). That is the potential outcome of one subject is not affected by other subjects' assignment to the treatment. In their [supplementary material](https://journals.sagepub.com/doi/suppl/10.1177/2053168019864224/suppl_file/Vote_Center_Supplemental_Materials_RR3.pdf), the authors argue that there is "no reason to believe that the assumption does not hold" without providing statistical test. 
+
+The authors make this assumption because in theory, whether a county has vote centers should not affect the turnout in another county. However, this may not be necessarily true because increased social media use over the years may have led to correlation between the treatment assignment and potential outcome.
+
+Social media (i.e. Instagram, Whatsapp, Facebook, / etc.) use increases the likelihood that people hear about other counties' experience of going to vote centers via Instagram or Whatsapp. Exposure to such news increases interest in vote centers, which may increase turnout as a result. 
+
+This alternative view cannot be statistically tested due to lack of data on social media use over time. 
+
+## 8.2 Placebo test: alternative outcomes
+
+For an additional diagnostics, we can re-code some control groups as treated and re-estimate the diff-in-diff estimand. Since the result of this paper was neither substantially nor statistically significant, the placebo test should produce similar results. 
+
+```{r results="asis"}
+# create dummy variables that assign the control group to treatment group and vice versa. 
+placebo <- a %>% mutate(
+              time_p = 
+               case_when(
+                 year == 2012 ~ "1",
+                 year == 2016 ~ "0"),
+             time_m = 
+               case_when(
+                 year == 2010 ~ "1",
+                 year == 2018 ~ "0"),
+             time_c =
+               case_when(
+                 year == 2009 ~ "1",
+                 year == 2017 ~ "0"))
+
+# Presidential
+placebo_p <- plm(turnout ~ votecenter*time_p + medianinc_rec + totalpop_rec + bachelor_higher, data=placebo, index=c("county"), model="within")
+
+# Midterm
+placebo_m <- plm(turnout ~ votecenter*time_m + medianinc_rec + totalpop_rec + bachelor_higher, data=placebo, index=c("county"), model="within") 
+
+# Constitutional
+placebo_c <- plm(turnout ~ votecenter*time_c + medianinc_rec + totalpop_rec + bachelor_higher, data=placebo, index=c("county"), model="within") 
+
+tab_model(placebo_p, placebo_m, placebo_c, 
+          show.ci=FALSE, collapse.se=TRUE, p.style="asterisk", show.intercept=TRUE,
+          title="Replicated Table 1",
+          robust=TRUE,
+          dv.labels = c("Presidential", "Midterm", "Constitutional"),
+          pred.labels=c("Vote center (1=yes/0=no)", "Time_P (1=2016/0=2012)", "Median income", "Total population", "Bachelor's degree or higher", "Time_P*Vote center", "Time_M (1=2018/0=2010)", "Time_M*Vote center", "Time_C (1=2017/0=2019)", "Time_C*Vote center"),
+          string.pred="Variables",
+          order.terms = c(1, 2, 6, 7, 8, 9, 10, 3, 5, 4), 
+          digits=3
+          )
+```
+
+The regression results have produced estimands that are close to 0, which are not identical, but consistent with the original results. Therefore, the diff-in-diff results appear robust. 

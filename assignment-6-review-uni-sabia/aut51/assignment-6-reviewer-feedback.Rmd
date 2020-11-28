@@ -1,0 +1,29 @@
+---
+title: "Reviewer Feedback Form, Assignment 6"
+output: github_document
+params:
+  q1_score: [11]
+  q2_score: [11]
+---
+
+
+## Instructions
+
+Enter your feedback for each question below. Please replace `[INSERT SCORE]` in the `q*_score` fields in the YAML with the scores you give the author for each question.
+
+Please keep your review comments constructive and professional.
+
+## Feedback
+
+#### 1. Partisan ties and resource allocation in Ghana [13 points in total]
+
+a-d. Have you forgotten to create forcing variable?
+e. Please provide methods of falsification checks. 
+
+#### 2. Effects of a pre- and post-natal health care policy [12 points in total]
+
+a - please change the color! 
+e - using the median as cutpoint was an interesting idea, but please note that the cut-point is not necessarily the median value. 
+
+
+

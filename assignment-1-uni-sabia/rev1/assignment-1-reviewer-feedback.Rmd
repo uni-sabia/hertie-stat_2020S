@@ -1,0 +1,29 @@
+---
+title: "Reviewer Feedback Form, Assignment 1"
+output: github_document
+params:
+  q1_score: [3]
+  q2_score: [3.5]
+  q3_score: [2]
+---
+
+
+## Instructions
+
+Enter your feedback for each question below. Please replace `[INSERT SCORE]` in the `q*_score` fields in the YAML with the scores you give the author for each question.
+
+Please keep your review comments constructive and professional.
+
+## Feedback
+
+#### 1. Place Question 1 text here. [max. 3 points]
+
+Everything is correct. The commands are perfectly written. Great!
+
+#### 2. Place Question 2 text here. [max. 4 points]
+
+Everything is perfect except for the command for point c), because you asked R to tell you the name of the first and last friend, but the question asked you to provide the names of the second and last, not first and last. 
+
+#### 3. Place Question 3 text here. [max. 5 points]
+Points a) and b) are correct. You didn't insert the codes for the rest of the question, so you missed those points. Thus your score is 2. 
+

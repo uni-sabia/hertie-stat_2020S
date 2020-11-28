@@ -1,0 +1,27 @@
+---
+title: "Reviewer Feedback Form, Assignment 6"
+output: github_document
+params:
+  q1_score: [11]
+  q2_score: [10]
+---
+
+
+## Instructions
+
+Enter your feedback for each question below. Please replace `[INSERT SCORE]` in the `q*_score` fields in the YAML with the scores you give the author for each question.
+
+Please keep your review comments constructive and professional.
+
+## Feedback
+
+#### 1. Partisan ties and resource allocation in Ghana [13 points in total]
+
+a - correct answer is : cut-point fully determines whether an MP gets elected or not. 
+c - I think you forgot to create a new variable "forcing"! 
+
+
+#### 2. Effects of a pre- and post-natal health care policy [12 points in total]
+
+a - 1) Please load "foreign" library to open dta files. 2) please check color setting. 
+f - good example!

@@ -1,0 +1,315 @@
+---
+
+title: "Assignment 6 - Solution - Statistics II, Hertie School"
+output: html_document
+---
+
+
+```{r setup, include = FALSE}
+library(dplyr) 
+library(ggplot2)
+library(rdd) 
+library(ggplot2)
+library(haven)
+set.seed(42) 
+
+
+```
+
+
+#### 1 - Partisan ties and resource allocation in Ghana [13 points in total]
+
+Do constituencies in Ghana that elect MPs who are from the same party as the President (the ruling party) receive more electrification over the next four years? Use the dataset `GhanaRD.csv` to find out. Here is a short description of the data:
+  
+- _constit:_ constituency
+- _voteshare:_ vote share of MP from ruling party in a constituency
+- _treatment:_ elected MP from from rulinng party
+- _changeNL_1996_2000:_ change in electrification from 1996 - 2000 measured using nightlight emissions
+- _mean_1995:_ electrification in 1995
+
+<br> 
+
+(a) Does it make sense to employ a sharp RD in this case? Provide a visual check and a brief interpretation of what you see! [2 pts]
+
+```{r, message=F}
+
+Ghana <- read.csv("Ghana_RD.csv")
+
+ggplot(Ghana, aes(x = voteshare, 
+                 y = treatment, 
+                 color = factor(treatment))) +
+  geom_point() + 
+  labs(x = "Vote Share of MP from ruling party", 
+       y = "Treatment Probability") +
+  scale_color_discrete(name = " ", 
+                       labels = c("Not actually elected for the 1996-200 term" , "Actually elected for the 1996-2000 term")) +
+  geom_vline(xintercept = 50,linetype="dashed") +
+  theme_minimal()
+
+
+
+
+```
+
+<div style="color:blue">
+We can see from the graph that at 50% Vote share, candidates are elected to serve term in parliament,making voteshare in 1996 a viable forcing variable for a sharp-RDD set-up. 
+</div>
+
+<br> 
+
+(b) Choose a bandwidth that seems reasonable to you, cut down the dataset to the discontinuity sample, and then estimate the LATE at the threshold using a linear model with common slopes for treated and control units within the bandwidth. Provide a plot in which you show the fitted curves and the underlying scatterplot of the data. Interpret your estimate. [4 pts]
+
+```{r, message=F}
+
+# Chosen  bandiwidth: interval centered around the cutoff, with the length of the Imbens-Kalyanamaran optimal bandwidth.
+#Running linear model with common slopes
+new_voteshare<- Ghana %>% filter(between(voteshare, 50-IKbandwidth(Ghana$voteshare, Ghana$changeNL_1996_200, cutpoint = 50), 50+IKbandwidth(Ghana$voteshare, Ghana$changeNL_1996_200, cutpoint = 50)))
+new_voteshare$forcing <- new_voteshare$voteshare-50
+
+linear_common_slope <- lm(changeNL_1996_2000~ treatment + forcing, data = new_voteshare)
+summary(linear_common_slope)
+
+#Plotting estimates
+new_voteshare$yhat_linear <- predict(linear_common_slope)
+
+linear_plot <- new_voteshare %>% 
+  ggplot(aes(x = voteshare,  
+             y = yhat_linear, 
+             col = factor(treatment))) +
+  geom_point(aes(x = voteshare, 
+                 y = changeNL_1996_2000, 
+                 col = factor(treatment))) +
+  labs(title = "Linear model with common slope",
+       x = "Forcing variable (Vote Share)",
+       y = "Rate of electrification") +
+  geom_line(data = new_voteshare[new_voteshare$voteshare >= 50,], 
+            color = "#00BFC4", 
+            size = 1) +
+  geom_line(data = new_voteshare[new_voteshare$voteshare < 50,], 
+            color = "#F8766D", 
+            size = 1) +
+  scale_color_manual(name = "",
+                     values = c("#F8766D", "#00BFC4"),
+                     labels = c("Control", "Treatment")) +
+  theme_minimal()
+
+linear_plot
+
+
+
+```
+
+
+<div style="color:blue">
+
+From the regression , LATE is -0.094. At the given threshhold, there is a reduction in rate of electrification by  of 0.094. Also, for every unit increase in voting share, there is further decrease in electrification rates by 0.02278
+
+</div>
+
+
+<br>
+
+(c) Conduct the same analysis as in part (b) except that you now use a quadratic model with different model coefficients for the treated and control groups! [2 pts]
+
+
+```{r, message=F}
+#Quadratic model
+
+quadratic <- lm(changeNL_1996_2000 ~ forcing + 
+                  I(forcing^2) + # I tells R to interpret "as is"
+                  treatment + 
+                  I(forcing * treatment) + 
+                  I((forcing^2) * treatment),
+                data = new_voteshare)
+summary(quadratic)
+#Plot
+new_voteshare$yhat_quadratic <- predict(quadratic) 
+
+quadratic_plot <- new_voteshare %>% 
+  ggplot(aes(x = voteshare, 
+             y = yhat_quadratic, 
+             col = factor(treatment))) +
+  geom_point(aes(x = voteshare, 
+                 y = changeNL_1996_2000, 
+                 col = factor(treatment))) +
+  labs(title = "Quadratic plot",
+       x = "Forcing variable(Vote Share)",
+       y = "Level of electrification") +
+  geom_line(data = new_voteshare[new_voteshare$voteshare >= 50,], 
+            color = "#00BFC4", 
+            size = 1) +
+  geom_line(data = new_voteshare[new_voteshare$voteshare < 50,], 
+            color = "#F8766D", 
+            size = 1) +
+  scale_color_manual(name = "",
+                     values = c("#F8766D", "#00BFC4"),
+                     labels = c("Control", "Treatment")) +
+  geom_vline(xintercept = 50, linetype = "dotted")+
+  theme_minimal()
+
+quadratic_plot
+
+
+
+
+```
+
+
+<div style="color:blue">
+
+
+At given τ we can expect an increase of 1.5 in the rate of electrification for those who were elected at threshhold
+</div>
+
+<br>
+
+(d) Now estimate the LATE at the threshold using a local linear regression with a triangular kernel. Also, use the Imbens-Kalyanamaran optimal bandwidth calculation. [3 pts]
+
+```{r, message=F}
+
+llr <- RDestimate(changeNL_1996_2000 ~ voteshare, data = new_voteshare,cutpoint = 50)
+summary(llr)
+plot(llr)
+title(main = "Electrification rates for MPs of the ruling party", xlab = "Vote Share",ylab = "Electrification rates")
+```
+
+<br>
+
+(e) Going over the estimation results again, how robust are they to different specifications of the regression? What other types of robustness checks might be appropriate? [2 pts]
+
+<div style="color:blue">
+
+
+From LATE we can expect that above threshhold level,  there is  0.9133 higher level of electrification for people that were elected. This result is statistically  significant compared to previous LATE 
+</div>
+ 
+<br>
+
+
+
+#### 2 - Effects of a pre- and post-natal health care policy [12 points in total]
+
+The dataset `hospitals.dta` provides data collected on women who gave birth at any one of several hospitals in disadvantaged neighborhoods in New York. You will use these data to evaluate the effect of a government policy that makes available pre- and post-natal health care for pregnant women, new mothers, and their children, who meet certain income eligibility requirements. To receive services, the income of these women has to have been below $20,000 at the time they gave birth. The general question of interest is whether this program increases a measure of child health at age 3.
+
+<br>
+
+(a) Create a scatterplot of reported income versus health status. Plot treated observations in red and controls in blue. [2 pts]
+
+```{r}
+hospitals <- read_dta("hospitals.dta")
+ggplot(hospitals, 
+       aes(x = incomeR, 
+           y = health, 
+           color = factor(program))) + 
+  geom_point() + 
+  labs(x = "Income", 
+       y = "Health") +
+  scale_color_discrete(name = " ", 
+                       labels = c("No program", "Program")) +
+  geom_vline(xintercept = median(hospitals$incomeR), linetype = "dotted") +
+  theme_minimal()
+```
+
+<br>
+
+(b) Calculate a naïve estimate of the effect of the program by running a regression of health on the indicator for program participation. What's the estimate, and why is it naïve? [2 pts]
+
+```{r}
+
+
+naive <- lm(health ~ program, data = hospitals)
+summary(naive)
+
+
+```
+
+<div style="color:blue">
+
+Estimate: -3.53584.Naive because  assumes a single effect  between treatment in control.
+
+</div>
+
+<br>
+
+(c) Make yourself familiar with LOESS smoothing in R and plot overlaid LOESS curves (one for each program group) of this relationship to explore whether or not the relationship between reported income and health appears to be non-linear. [2 pts]
+
+```{r}
+  ggplot(hospitals, 
+       aes(x = incomeR, 
+           y = health, 
+           color = factor(program))) + 
+  geom_point(alpha = 0.1) + 
+  labs(x = " Income", 
+       y = "Health") +
+  geom_smooth(method = "loess") +
+  scale_color_discrete(name = " ", 
+                       labels = c("No program", "Program")) +
+  geom_vline(xintercept = median(hospitals$incomeR), linetype = "dotted") +
+  theme_minimal()
+
+
+```
+
+<div style="color:blue">
+
+
+From the plot it is evident that relation between Income and Healyh is Linear 
+
+</div>
+
+<br>
+
+(d) Now fit an RD model of your choice and report and interpret its estimates. [2 pts]
+
+```{r}
+
+RDmodel<- RDestimate(health ~ incomeR, data = hospitals, cutpoint = median(hospitals$incomeR))
+summary(RDmodel)
+
+
+
+```
+
+<div style="color:blue">
+
+
+At threshhold, woman who enrolls in pre natal and post natal program shows an increase in health for child by 0.5269 units
+</div>
+<br>
+
+
+(e) A colleague now points out to you that some women may have incentives in these settings to misreport their actual income. Plot a histogram of reported income and look for anything that might support or refute such a claim. What assumption is called into question if women are truly misreporting in this manner? [2 pts]
+
+```{r}
+
+ggplot(hospitals, 
+       aes(x = incomeR)) +
+  geom_histogram(bins = 25) +
+  labs(title = "Income distribution",
+       x = "Income",
+       y = "Number of respondents") +
+  geom_vline(xintercept = median(hospitals$incomeR)) +
+  theme_minimal()
+
+
+```
+
+<div style="color:blue">
+
+Since theere exists a large number of respondents away from cut off at zero lveles of income, the chances are more that they are not included in the labour force. For identification of threshhold causal effect we assume Continuity of average potential outcomes E(Yi(d)∣Xi = x) is continuous in x around Xi = c for d = 0, 1. however here if there is a probability of sorting by respondents to maneuver around threshhold this will be violated 
+
+
+</div>
+
+<br>
+
+(f) Another colleague points out to you that several other government programs (including food stamps etc.) have the same income threshold for eligibility. How might this knowledge impact your interpretation of your results? [2 pt]
+
+<div style="color:blue">
+
+In case of existance of same threshhold for mutiple programs, it will be difficult to analyse the unique effect of the program, leading to existence of confounder and hence omitted variable bias.
+</div>
+<br>
+
+
+

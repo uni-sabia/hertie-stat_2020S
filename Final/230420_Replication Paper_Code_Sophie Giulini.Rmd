@@ -1,0 +1,224 @@
+---
+title: "230420_Replication Paper Code"
+author: "Sophie Giulini"
+date: "4/23/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Loading libraries
+
+```{r warning=FALSE, message=FALSE}
+
+set.seed(42) #for consistent results
+
+library(dplyr) # to wrangle our data
+library(tidyr) # to wrangle our data - gather()
+library(ggplot2) # to render our graphs
+library(haven) # to load our .dta files for the assignment
+library(plm) # to run our fixed effects models
+library(kableExtra) # to render better formatted tables
+library(stargazer) # for formatting your model output
+library(tidyverse)
+library(lmtest)# for calculating clustered standard errors 
+library(MatchIt)# for matching
+
+```
+
+Loading data
+
+```{r warning=FALSE, message=FALSE}
+vote_centers_data <- read_dta("Rottinghaus_Cortina_Vote Centers and Turnout by Election Type in Texas_Data.dta")
+vote_centers_data
+
+#creating sub sets with variables, which are known and required for the data replication
+Selected_data <-vote_centers_data%>%select(year, turnout, election, county,medianinc_rec, bachelor_higher, presidential, constitutional, midterm, totalpop_rec, votecenter)%>%arrange(county,election)
+Selected_data
+
+length(unique(Selected_data$county))
+#Sample size of 254 
+
+parllel_trend_assumption_data<-read_dta("Rottinghaus_Cortina_Vote Centers and Turnout by Election Type in Texas_Parallel Assumption Data.dta")
+parllel_trend_assumption_data
+
+names(vote_centers_data) # to check the names of the variables in our data
+```
+
+#Table 1 
+
+To replicate table 1, a Difference-in-Difference (DD) fixed effects model is built with help of the plm function. 
+To analyse the DD effect of votecenters on turnout for the different election cycles, one can create dummy variables, where 1 represents the voting year after, and 0 the voting year before the implementation of votecenters.
+
+```{r warning=FALSE, message=FALSE}
+
+#Creating dummy variables for the different election years
+
+Selected_data %>% mutate(pt=case_when(
+year == 2016 ~ "1",
+year==2012~ "0"
+  ))
+
+Selected_data<-Selected_data %>% mutate(pt)
+
+vote_centers_data %>% mutate(pt=case_when(
+year == 2016 ~ "1",
+year==2012~ "0"
+  ))
+
+vote_centers_data %>% mutate(mt=case_when(
+  year== 2018 ~ "1",
+  year== 2010 ~ "0"
+  ))
+
+vote_centers_data %>% mutate(ct=case_when(
+  year == 2017 ~ "1",
+  year == 2009 ~ "0"
+  ))
+
+vote_centers_data<-vote_centers_data %>% mutate(pt, mt, ct)
+
+names(vote_centers_data)
+
+#Modeling a fixed effects function with DD with help of plm 
+
+reg1 <- plm(turnout ~ votecenter + pt + votecenter * pt + medianinc_rec + bachelor_higher + totalpop_rec , data=vote_centers_data, index = c("county"), model = "within")
+reg1
+
+reg1 <- plm(turnout ~ votecenter + pt + votecenter * pt + medianinc_rec + bachelor_higher+totalpop_rec, data=Selected_data, index = c("county"), model = "within")
+reg1
+
+reg2 <- plm(turnout ~ votecenter + mt + votecenter * mt + medianinc_rec + bachelor_higher + totalpop_rec, data=vote_centers_data, index = c("county"), model = "within")
+reg2
+
+reg3 <- plm(turnout ~ votecenter + ct + votecenter * ct + medianinc_rec + bachelor_higher + totalpop_rec, data=vote_centers_data, index = c("county"), model = "within")
+reg3
+
+stargazer(reg1,reg2,reg3,type= "html", out="table1.txt",
+          omit.stat=c("LL","ser","f"), no.space=TRUE)
+
+#Calculate clustered standard errors with help of coeftest
+
+coeftest(reg1,vcov. = NULL, df=NULL)
+coeftest(reg2,vcov. = NULL, df=NULL)
+coeftest(reg3,vcov. = NULL, df=NULL)
+```
+
+#Table 2
+
+```{r warning=FALSE, message=FALSE}
+# Creating dummy variables for the different time cycles 
+
+ct1 <- case_when(
+  vote_centers_data$year %% 2011 == 1 ~ "1",
+  vote_centers_data$year %% 2009 == 0 ~ "0"
+)
+
+vote_centers_data %>% mutate(ct1=case_when(
+  vote_centers_data$year %% 2011 == 1 ~ "1",
+  vote_centers_data$year %% 2009 == 0 ~ "0"
+  ))
+
+
+ct2<-case_when(
+  vote_centers_data$year %% 2017 == 1 ~ "1",
+  vote_centers_data$year %% 2011 == 0 ~ "0"
+  )
+vote_centers_data %>% mutate(ct2=case_when(
+  vote_centers_data$year %% 2017 == 1 ~ "1",
+  vote_centers_data$year %% 2011 == 0 ~ "0"
+  ))
+
+ct3<-case_when(
+  vote_centers_data$year %% 2013 == 1 ~ "1",
+  vote_centers_data$year %% 2015 == 0 ~ "0"
+  )
+
+vote_centers_data %>% mutate(ct3=case_when(
+  vote_centers_data$year %% 2013 == 1 ~ "1",
+  vote_centers_data$year %% 2015 == 0 ~ "0"
+  ))
+
+#Modeling unit-fixed effects function with DD, with help of plm
+
+reg4 <- plm(turnout ~ votecenter + ct1 + votecenter * ct1 + medianinc_rec + bachelor_higher + totalpop_rec, data=vote_centers_data, index = c("county"), model = "within")
+reg4
+
+reg5 <- plm(turnout ~ votecenter + ct2 + votecenter * ct2 + medianinc_rec + bachelor_higher + totalpop_rec, data=vote_centers_data, index = c("county"), model = "within")
+reg5
+
+reg6 <- plm(turnout ~ votecenter + ct3 + votecenter * ct3 + medianinc_rec + bachelor_higher + totalpop_rec, data=vote_centers_data, index = c("county"), model = "within")
+reg6
+
+# Calculating clustered stard errors 
+
+coeftest(reg4, vcov. = NULL, df=NULL)
+coeftest(reg5, vcov. = NULL, df=NULL)
+coeftest(reg6, vcov. = NULL, df=NULL)
+
+stargazer(reg4, reg5, reg6, type= "html", out="table1.txt",
+          omit.stat=c("LL","ser","f"), no.space=TRUE)
+
+```
+
+#Table 3 
+
+To replicate table 3, doing a Dif-in-Dif analysis on matched data, we build three data subsets for the different election cyclys, which are Presidential, Constitutional and Midterm elections. 
+Within the subsets, we match the data. 
+
+```{r warning=FALSE, message=FALSE}
+#Creating data sub sets for the different election cycles
+presidential_d <-Selected_data%>%filter(election=="presidential"&year==2016|year==2012)%>%mutate(time_p(ifelse(year==2016,1,0))
+                                                                                            
+midterm_d <- Selected_data%>%filter(election=="midterm"&year==2018|year==2010)%>%mutate(time_m(ifelse(year==2018,1,0))   
+                                                                                        
+constitutional_d <- Selected_data%>%filter(election=="constitutional"&year==2017|year==2009)%>%mutate(time_c(ifelse(year==2017,1,0))
+```                                                                                                     
+                                                                                                      
+Propensity score matching on co-variates for the three subsets with matchit 
+
+```{r warning=FALSE, message=FALSE}
+
+#Estimate logit model
+logitmodel <- glm(votecenter ~ medianinc_rec + bachelor_higher + totalpop_rec,
+            family = binomial(), 
+            data = presidential_d)
+
+stargazer(logitmodel, type = "html")
+
+```
+
+```{r warning=FALSE, message=FALSE}
+#Predicted probabilities
+prs_df <- data.frame(pr_score = predict(logitmodel, type = "response"),
+                     votecenter = logitmodel$model$votecenter)
+
+#Plot probablity
+prs_df %>%
+  ggplot(aes(x = turnout, fill = factor(votecenter))) +
+  geom_density(alpha = 0.5) +
+  labs(x = "Propensity Score Distribution: Treatment and Control Groups",
+       fill = "Establishment of votecenters")
+````
+
+```{r warning=FALSE, message=FALSE}
+#Non-exact matching: 
+matched_presidential <- matchit(votecenter ~  medianinc_rec + bachelor_higher + totalpop_rec, data = presidential_d,  
+   method = "nearest", 
+   ratio = 1, 
+   replace = TRUE,
+   data = XXX))
+
+summary(matched_presidential)
+```
+
+
+
+                                                                                                      
+```
+
+# Extension
+
+
